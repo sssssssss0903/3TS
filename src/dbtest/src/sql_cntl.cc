@@ -405,7 +405,7 @@ bool DBConnector::SQLEndTnx(std::string opt, int session_id, int sql_id, TestRes
         }
     }
     // Non-Oracle database handling: If db_type is not "oracle", the function will use the SQLEndTran function of ODBC to perform transaction end operations.
-    if (db_type != "oracle") {
+    if (db_type != "oracle"){ 
         SQLRETURN ret;
         SQLHDBC m_hDatabaseConnection = DBConnector::conn_pool_[session_id - 1];
         // If the operation is "commit," perform a commit.
@@ -413,17 +413,24 @@ bool DBConnector::SQLEndTnx(std::string opt, int session_id, int sql_id, TestRes
             ret = SQLEndTran(SQL_HANDLE_DBC, m_hDatabaseConnection, SQL_COMMIT);
         // If the operation is "rollback" and the database type is not "crdb," perform a rollback. Otherwise, execute the rollback SQL command specific to "crdb."
         } else if ("rollback" == opt) {
-            if (db_type != "crdb"){
-                ret = SQLEndTran(SQL_HANDLE_DBC, m_hDatabaseConnection, SQL_ROLLBACK);
-            } else {
-                std::string sql = "ROLLBACK TRANSCATION;"; 
-                if (!DBConnector::ExecWriteSql(1024, sql, test_result_set, session_id, test_process_file)) {
-                return false;
-                }
+          if (db_type != "crdb") {
+            ret = SQLEndTran(SQL_HANDLE_DBC, m_hDatabaseConnection, SQL_ROLLBACK);
+          } else if (db_type == "firebird") {
+            std::string sql = "ROLLBACK;";
+            if (!DBConnector::ExecWriteSql(1024, sql, test_result_set, session_id,
+                                           test_process_file)) {
+              return false;
             }
-            
+          } else {
+            std::string sql = "ROLLBACK TRANSCATION;";
+            if (!DBConnector::ExecWriteSql(1024, sql, test_result_set, session_id,
+                                           test_process_file)) {
+              return false;
+            }
+          }
+
         } else {
-            std::cout << "unknow txn opt" << std::endl;
+          std::cout << "unknow txn opt" << std::endl;
         }
 
         // Afterward, the function calls SqlExecuteErr to handle possible errors.
