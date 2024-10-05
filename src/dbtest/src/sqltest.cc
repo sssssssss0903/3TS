@@ -97,7 +97,7 @@ bool MultiThreadExecution(std::vector<TxnSql>& txn_sql_list, TestSequence& test_
         std::string sql = txn_sql.Sql();
         
         // oracle mode
-        if (FLAGS_db_type == "oracle" || FLAGS_db_type == "ob") {
+        if (FLAGS_db_type == "oracle" || FLAGS_db_type == "ob" || FLAGS_db_type =="firebird" ) {
         // mysql mode
         // if (FLAGS_db_type == "oracle") {
             std::string sub_str ("IF EXISTS");
