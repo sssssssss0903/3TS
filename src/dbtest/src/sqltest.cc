@@ -14,7 +14,7 @@
 #include <unistd.h>
 #include <mutex>
 #include <regex>
-#include <chrono> 
+
 // Implement command-line argument parsing based on Google's gflags library
 DEFINE_string(db_type, "mysql", "data resource name, please see /etc/odbc.ini, such as mysql pg oracle ob tidb sqlserver crdb");
 DEFINE_string(user, "test123", "username");
@@ -158,94 +158,118 @@ bool MultiThreadExecution(std::vector<TxnSql>& txn_sql_list, TestSequence& test_
                 goto jump;
             }
         } else if (index_begin != sql.npos || index_begin_1 != sql.npos) {
-            if (FLAGS_db_type != "crdb" && FLAGS_db_type != "ob") {
-                if (FLAGS_db_type == "tidb") {
-                    // Pessimistic mode
-                    if (!db_connector.ExecWriteSql(sql_id, "BEGIN PESSIMISTIC;", test_result_set, txn_id, test_process_file)) {
-                    // Optimistic mode
-                    // if (!db_connector.ExecWriteSql(sql_id, "BEGIN OPTIMISTIC;", test_result_set, txn_id, test_process_file)) {
-                        goto jump;
-                    }
-                // MyRocks SI mode, comment it for 4 normal levels
-                } else if (FLAGS_db_type == "myrocks") {
-                    if (!db_connector.ExecWriteSql(sql_id, "START TRANSACTION WITH CONSISTENT SNAPSHOT;", test_result_set, txn_id, test_process_file)) {
-                        goto jump;
-                    }
-                // YugabyteDB https://docs.yugabyte.com/preview/explore/transactions/isolation-levels/
-                } else if (FLAGS_db_type == "yugabyte") {
-                    if (!db_connector.SQLStartTxn(txn_id, sql_id, test_process_file)) {
-                        goto jump;
-                    }
-                    std::string begin_sql = "BEGIN TRANSACTION";
-                    // beta version: You must set the YB-Tserver flag yb_enable_read_committed_isolation to true when start database service for read-committed level!!!
-                    // if (FLAGS_isolation == "read-committed") {
-                    //    begin_sql += " ISOLATION LEVEL READ COMMITTED;";
-                    // }
-                    if (FLAGS_isolation == "snapshot") {
-                        begin_sql += ";";
-                    } else {
-                        begin_sql += " ISOLATION LEVEL SERIALIZABLE;";
-                    }
-                    if (!db_connector.ExecWriteSql(sql_id, begin_sql, test_result_set, txn_id, test_process_file)) {
-                        goto jump;
-                    }
-                } else {
-                    if (!db_connector.SQLStartTxn(txn_id, sql_id, test_process_file)) {
-                        goto jump;
-                    }
-                    // set pg lock timeout
-                    if (FLAGS_db_type == "pg") {
-                        std::string sql_timeout = "SET LOCAL lock_timeout = '" + FLAGS_timeout + "s';";
-                        if (!db_connector.ExecWriteSql(1024, sql_timeout, test_result_set, txn_id, test_process_file)) {
-                            goto jump;
-                        }
-                    }
-                    // // oracle this will kill the session.
-                    // if (FLAGS_db_type == "oracle") {
-                    //     std::string sql_timeout = "alter session set ddl_lock_timeout = " + FLAGS_timeout + ";";
-                    //     std::cout << " sql: " << sql_timeout << std::endl;
-                    //     if (!db_connector.ExecWriteSql(1024, sql_timeout, test_result_set, txn_id, test_process_file)) {
-                    //         goto jump;
-                    //     }
-                    // }
-                    // // alter session set ddl_lock_timeout = 5
-
-                }
-            } else {
-                if (FLAGS_db_type == "crdb") {
-                    if (!db_connector.ExecWriteSql(sql_id, "BEGIN TRANSACTION;", test_result_set, txn_id, test_process_file)) {
-                        goto jump;
-                    }
-                } else {
-                    if (!db_connector.ExecWriteSql(sql_id, "BEGIN;", test_result_set, txn_id, test_process_file)) {
-                        goto jump;
-                    }
-                }
-            }
-        } else if (index_commit != sql.npos || index_commit_1 != sql.npos) {
-            if (FLAGS_db_type != "crdb") {
-                if (!db_connector.SQLEndTnx("commit", txn_id, sql_id, test_result_set, FLAGS_db_type, test_process_file)) {
-                    goto jump;
-                }
-            } else {
-                if (!db_connector.ExecWriteSql(sql_id, "COMMIT TRANSACTION;", test_result_set, txn_id, test_process_file)) {
-                    goto jump;
-                }
-            }
-        } else if (index_rollback != sql.npos || index_rollback_1 != sql.npos) {
-            if (FLAGS_db_type != "crdb") {
-                if (!db_connector.SQLEndTnx("rollback", txn_id, sql_id, test_result_set, FLAGS_db_type, test_process_file)) {
-                    goto jump;
-                }
-            } else {
-                if (!db_connector.SQLEndTnx("rollback", txn_id, sql_id, test_result_set, FLAGS_db_type, test_process_file)) {
-                    goto jump;
-                }
-            }
-        } else {
-            if (!db_connector.ExecWriteSql(sql_id, sql, test_result_set, txn_id, test_process_file)) {
+          if (FLAGS_db_type != "crdb" && FLAGS_db_type != "ob") {
+            if (FLAGS_db_type == "tidb") {
+              // Pessimistic mode
+              if (!db_connector.ExecWriteSql(sql_id, "BEGIN PESSIMISTIC;", test_result_set, txn_id,
+                                             test_process_file)) {
+                // Optimistic mode
+                // if (!db_connector.ExecWriteSql(sql_id, "BEGIN OPTIMISTIC;", test_result_set,
+                // txn_id, test_process_file)) {
                 goto jump;
+              }
+              // MyRocks SI mode, comment it for 4 normal levels
+            } else if (FLAGS_db_type == "myrocks") {
+              if (!db_connector.ExecWriteSql(sql_id, "START TRANSACTION WITH CONSISTENT SNAPSHOT;",
+                                             test_result_set, txn_id, test_process_file)) {
+                goto jump;
+              }
+              // YugabyteDB https://docs.yugabyte.com/preview/explore/transactions/isolation-levels/
+            } else if (FLAGS_db_type == "yugabyte") {
+              if (!db_connector.SQLStartTxn(txn_id, sql_id, test_process_file)) {
+                goto jump;
+              }
+              std::string begin_sql = "BEGIN TRANSACTION";
+              // beta version: You must set the YB-Tserver flag yb_enable_read_committed_isolation
+              // to true when start database service for read-committed level!!! if (FLAGS_isolation
+              // == "read-committed") {
+              //    begin_sql += " ISOLATION LEVEL READ COMMITTED;";
+              // }
+              if (FLAGS_isolation == "snapshot") {
+                begin_sql += ";";
+              } else {
+                begin_sql += " ISOLATION LEVEL SERIALIZABLE;";
+              }
+              if (!db_connector.ExecWriteSql(sql_id, begin_sql, test_result_set, txn_id,
+                                             test_process_file)) {
+                goto jump;
+              }
+            } else if (FLAGS_db_type == "firebird") {
+              if (!db_connector.ExecWriteSql(sql_id, "START TRANSACTION;", test_result_set, txn_id,
+                                             test_process_file)) {
+                goto jump;
+              }
+            } else {
+              if (!db_connector.SQLStartTxn(txn_id, sql_id, test_process_file)) {
+                goto jump;
+              }
+              // set pg lock timeout
+              if (FLAGS_db_type == "pg") {
+                std::string sql_timeout = "SET LOCAL lock_timeout = '" + FLAGS_timeout + "s';";
+                if (!db_connector.ExecWriteSql(1024, sql_timeout, test_result_set, txn_id,
+                                               test_process_file)) {
+                  goto jump;
+                }
+              }
+              // // oracle this will kill the session.
+              // if (FLAGS_db_type == "oracle") {
+              //     std::string sql_timeout = "alter session set ddl_lock_timeout = " +
+              //     FLAGS_timeout + ";"; std::cout << " sql: " << sql_timeout << std::endl; if
+              //     (!db_connector.ExecWriteSql(1024, sql_timeout, test_result_set, txn_id,
+              //     test_process_file)) {
+              //         goto jump;
+              //     }
+              // }
+              // // alter session set ddl_lock_timeout = 5
             }
+          } else {
+            if (FLAGS_db_type == "crdb") {
+              if (!db_connector.ExecWriteSql(sql_id, "BEGIN TRANSACTION;", test_result_set, txn_id,
+                                             test_process_file)) {
+                goto jump;
+              }
+            } else {
+              if (!db_connector.ExecWriteSql(sql_id, "BEGIN;", test_result_set, txn_id,
+                                             test_process_file)) {
+                goto jump;
+              }
+            }
+          }
+        } else if (index_commit != sql.npos || index_commit_1 != sql.npos) {
+          if (FLAGS_db_type != "crdb") {
+            if (!db_connector.SQLEndTnx("commit", txn_id, sql_id, test_result_set, FLAGS_db_type,
+                                        test_process_file)) {
+              goto jump;
+            }
+          } else {
+            if (FLAGS_db_type == "firebird") {
+              if (!db_connector.ExecWriteSql(sql_id, "COMMIT;", test_result_set, txn_id,
+                                             test_process_file)) {
+                goto jump;
+              }
+            } else {
+              if (!db_connector.ExecWriteSql(sql_id, "COMMIT TRANSACTION;", test_result_set, txn_id,
+                                             test_process_file)) {
+                goto jump;
+              }
+            }
+          }
+        } else if (index_rollback != sql.npos || index_rollback_1 != sql.npos) {
+          if (FLAGS_db_type != "crdb") {
+            if (!db_connector.SQLEndTnx("rollback", txn_id, sql_id, test_result_set, FLAGS_db_type,
+                                        test_process_file)) {
+              goto jump;
+            }
+          } else {
+            if (!db_connector.SQLEndTnx("rollback", txn_id, sql_id, test_result_set, FLAGS_db_type,
+                                        test_process_file)) {
+              goto jump;
+            }
+          }
+        } else {
+          if (!db_connector.ExecWriteSql(sql_id, sql, test_result_set, txn_id, test_process_file)) {
+            goto jump;
+          }
         }
 
       // Output the interval between SQL executions
@@ -377,8 +401,7 @@ bool JobExecutor::ExecTestSequence(TestSequence& test_sequence, TestResultSet& t
         // remove the last commit at verification selct
         split_groups[thread_cnt-1].pop_back();
     }
-   // Start time for measuring the overall execution duration
-    auto start_time = std::chrono::high_resolution_clock::now();
+
     // prepration phase 
     for (auto& group : init_group) {
         // for (auto& txn_sql : group) {   
@@ -416,14 +439,6 @@ bool JobExecutor::ExecTestSequence(TestSequence& test_sequence, TestResultSet& t
     if(!outputter.WriteResultType(test_result_set.ResultType(), test_process_file)) {
         return false;
     }
-     // End time for measuring the overall execution duration
-    auto end_time = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed = end_time - start_time;
-
-     // Output execution time
-    std::string execution_time_info = "Transaction execution time: " + std::to_string(elapsed.count()) + " seconds";
-    std::cout << execution_time_info << std::endl;
-    test_process << execution_time_info << std::endl;
     return true;
 }
 
@@ -521,11 +536,14 @@ int main(int argc, char* argv[]) {
     // create isolation dir
     std::vector<std::string> iso_list;
     if (FLAGS_db_type == "cassandra") {
-        iso_list = std::vector<std::string>({"one"});
+      iso_list = std::vector<std::string>({"one"});
     } else if (FLAGS_db_type == "yugabyte") {
-        iso_list = std::vector<std::string>({"serializable", "snapshot"});
+      iso_list = std::vector<std::string>({"serializable", "snapshot"});
+    } else if (FLAGS_db_type == "firebird") {
+      iso_list = std::vector<std::string>({"read-committed", "repeatable-read", "serializable"});
     } else {
-        iso_list = std::vector<std::string>({"read-uncommitted", "read-committed", "repeatable-read", "serializable", "result_summary"});
+      iso_list = std::vector<std::string>({"read-uncommitted", "read-committed", "repeatable-read",
+                                           "serializable", "result_summary"});
     }
     //std::vector<std::string> iso_list = {"read-uncommitted", "read-committed", "repeatable-read", "serializable", "result_summary"};
     for (auto iso : iso_list) {

@@ -42,4 +42,7 @@ then
 elif [ $db == "yugabyte" ]
 then
     ./3ts_dbtest -isolation=$2 -db_type="yugabyte" -user="username" -passwd="password" -case_dir="yugabyte"
+elif [ $db == "firebird" ]
+then
+    ./3ts_dbtest -isolation=$2 -db_type="firebird" -user="username" -passwd="password" -case_dir="firebird"
 fi

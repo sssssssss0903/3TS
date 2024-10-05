@@ -37,3 +37,7 @@ set -x
 
 ./auto_test.sh "yugabyte" "serializable"
 ./auto_test.sh "yugabyte" "snapshot"
+
+./auto_test.sh "firebird" "read-committed"
+./auto_test.sh "firebird" "repeatable-read"
+./auto_test.sh "firebird" "serializable"
