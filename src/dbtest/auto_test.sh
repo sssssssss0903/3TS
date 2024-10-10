@@ -39,6 +39,9 @@ then
 elif [ $db == "cassandra" ]
 then
     ./3ts_dbtest -isolation=$2 -db_type="cassandra" -user="username" -passwd="password" -case_dir="cassandra"
+elif [ $db == "kingbase" ]
+then
+    ./3ts_dbtest -isolation=$2 -db_type="kingbase" -user="kingbase" -passwd="123456" -case_dir="kingbase"
 elif [ $db == "yugabyte" ]
 then
     ./3ts_dbtest -isolation=$2 -db_type="yugabyte" -user="username" -passwd="password" -case_dir="yugabyte"
