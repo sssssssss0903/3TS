@@ -681,18 +681,5 @@ bool DBConnector::SetIsolationLevel(SQLHDBC m_hDatabaseConnection, std::string o
             return false;
         }
     }
-
-    // // snapshot mode for myrocks
-    // if (db_type == "myrocks") {
-    //     TestResultSet test_result_set;
-    //     std::string sql;
-    //     // sql = "START TRANSACTION WITH CONSISTENT ROCKSDB SNAPSHOT"; 
-    //     sql = "START TRANSACTION WITH CONSISTENT SNAPSHOT"; 
-    //     if (!DBConnector::ExecWriteSql(1024, sql, test_result_set, session_id, test_process_file)) {
-    //         return false;
-    //     }
-    //     std::cout << sql << std::endl;
-    // }
-
     return true;
 }

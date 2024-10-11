@@ -16,13 +16,13 @@
 #include <regex>
 
 // Implement command-line argument parsing based on Google's gflags library
-DEFINE_string(db_type, "mysql", "data resource name, please see /etc/odbc.ini, such as mysql pg oracle ob tidb sqlserver crdb");
-DEFINE_string(user, "test123", "username");
-DEFINE_string(passwd, "Ly.123456", "password");
-DEFINE_string(db_name, "test", "create database name");
+DEFINE_string(db_type, "kingbase", "data resource name, please see /etc/odbc.ini, such as mysql pg oracle ob tidb sqlserver crdb");
+DEFINE_string(user, "kingbase", "username");
+DEFINE_string(passwd, "123456", "password");
+DEFINE_string(db_name, "testdb", "create database name");
 DEFINE_int32(conn_pool_size, 30, "db_conn pool size");
 DEFINE_string(isolation, "serializable", "transation isolation level: read-uncommitted read-committed repeatable-read serializable");
-DEFINE_string(case_dir, "mysql", "test case dir name");
+DEFINE_string(case_dir, "kingbase", "test case dir name");
 DEFINE_string(timeout, "3", "timeout");
 
 
