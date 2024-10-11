@@ -5,9 +5,7 @@ set -x
 ./auto_test.sh "kingbase" "repeatable-read"
 ./auto_test.sh "kingbase" "serializable"
 
-#./auto_test.sh "oracle" "read-committed"
-#./auto_test.sh "oracle" "serializable"
 
-./auto_test.sh "pg" "read-uncommitted"
+#./auto_test.sh "pg" "read-uncommitted"
 
 

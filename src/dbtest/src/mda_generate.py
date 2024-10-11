@@ -68,6 +68,9 @@ def init_table(file_name, sql_count, txn_count, table_num, db_type, test_type):
             file_test.write(drop_sql)
         if test_type == "single":
             for i in range(1, table_num + 1):
+                # MySQL 5.1 add InnoDB for table
+                # create_sql = str(sql_count) + "-" + str(txn_count) + "-" + "CREATE TABLE t" + str(i) + \
+                            #  " (k INT PRIMARY KEY, v INT) ENGINE=InnoDB;\n"
                 create_sql = str(sql_count) + "-" + str(txn_count) + "-" + "CREATE TABLE t" + str(i) + \
                              " (k INT PRIMARY KEY, v INT);\n"
                 file_test.write(create_sql)
@@ -86,20 +89,6 @@ def init_table(file_name, sql_count, txn_count, table_num, db_type, test_type):
                              "(PARTITION p0 VALUES FROM (MINVALUE) TO (2), " \
                              "PARTITION p1 VALUES FROM (2) TO (MAXVALUE));\n"
                 file_test.write(create_sql)
-        elif db_type == "kingbase":
-            data_num = 4
-            for i in range(1, table_num + 1):
-                # Create main table
-                create_sql = str(sql_count) + "-" + str(txn_count) + "-" + "CREATE TABLE t" + str(i) + \
-                             " (k INT, v INT) PARTITION BY RANGE (v);\n"
-                file_test.write(create_sql)
-                # Create partitions
-                partition_sql_1 = str(sql_count) + "-" + str(txn_count) + "-" + "CREATE TABLE t" + str(i) + \
-                                  "_p0 PARTITION OF t" + str(i) + " FOR VALUES FROM (MINVALUE) TO (2);\n"
-                partition_sql_2 = str(sql_count) + "-" + str(txn_count) + "-" + "CREATE TABLE t" + str(i) + \
-                                  "_p1 PARTITION OF t" + str(i) + " FOR VALUES FROM (2) TO (4);\n"
-                file_test.write(partition_sql_1)
-                file_test.write(partition_sql_2)
         else:
             for i in range(1, table_num + 1):
                 create_sql = str(sql_count) + "-" + str(txn_count) + "-" + "CREATE TABLE t" + str(i) + \
